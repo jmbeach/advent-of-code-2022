@@ -7,7 +7,7 @@ function parseInput(text: string): Input {
   // parse initil configuration
   while (lines[i].trim()) {
     const line = lines[i];
-    const row = [...new Array(Math.floor(line.length / 4))];
+    const row = [...new Array(Math.ceil(line.length / 4))];
     for (let j = 0; j < line.length; j += 4) {
       const next = line.substring(j, j + 3);
       if (!next.trim()) continue;
@@ -25,8 +25,6 @@ function parseInput(text: string): Input {
   }
   return result;
 }
-
-const input = parseInput(Deno.readTextFileSync('input.txt'));
 
 function performActions({ initial, moves }: Input) {
   const stacks: string[][] = [...new Array(initial[0].length)].map(_ => []);
@@ -50,7 +48,8 @@ function performActions({ initial, moves }: Input) {
   return stacks.map(x => x.pop()).join('');
 }
 
-// console.log(performActions(input));
+const input = parseInput(Deno.readTextFileSync('input.txt'));
+console.log(performActions(input));
 
 const tests = [
   {
@@ -68,8 +67,8 @@ move 1 from 1 to 2`,
 ];
 
 for (const test of tests) {
-  console.log(parseInput(test.data));
-  const result = performActions(parseInput(test.data));
+  const parsed = parseInput(test.data);
+  const result = performActions(parsed);
   if (result !== test.expect) {
     throw new Error(JSON.stringify(test) + ' - ' + result);
   }
