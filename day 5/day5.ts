@@ -48,8 +48,36 @@ function performActions({ initial, moves }: Input) {
   return stacks.map(x => x.pop()).join('');
 }
 
+function performActions9001({ initial, moves }: Input) {
+  const stacks: string[][] = [...new Array(initial[0].length)].map(_ => []);
+  for (let col = 0; col < initial[0].length; col++) {
+    for (let row = initial.length - 1; row >= 0; row--) {
+      if (!initial[row][col]) continue;
+      stacks[col].push(initial[row][col]);
+    }
+  }
+
+  for (const move of moves) {
+    const [amount, from, to] = move
+      .match(/move (\d+) from (\d+) to (\d+)/)!
+      .slice(1)
+      .map(x => parseInt(x, 10));
+    const newStack = [];
+    for (let i = 0; i < amount; i++) {
+      const popped = stacks[from - 1].pop()!;
+      newStack.push(popped);
+    }
+    for (let i = 0; i < amount; i++) {
+      const popped = newStack.pop()!;
+      stacks[to - 1].push(popped);
+    }
+  }
+  return stacks.map(x => x.pop()).join('');
+}
+
 const input = parseInput(Deno.readTextFileSync('input.txt'));
 console.log(performActions(input));
+console.log(performActions9001(input));
 
 const tests = [
   {
