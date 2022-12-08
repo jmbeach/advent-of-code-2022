@@ -69,24 +69,46 @@ function calculateSizes(graph: Node): number {
 }
 
 function search(graph: Node): number {
-  if (graph.type === 'file') return 0;
   const q = [...graph.children].filter(x => x.type === 'folder');
-  let next = q.pop();
+  let next = q.shift();
   let sum = 0;
   while (next) {
     if (next.size <= 100000) {
       sum += next.size;
     }
 
-    sum += search(next);
+    next.children
+      .filter(x => x.type === 'folder')
+      .forEach(child => q.push(child));
 
-    next = q.pop();
+    next = q.shift();
   }
 
   return sum;
 }
 
 function findFolders(outputs: string[]): number {
+  const graph = createGraph(outputs);
+  calculateSizes(graph);
+  return search(graph);
+}
+
+function searchSmallest(graph: Node): number {
+  const fileSystemSize = 70000000;
+  const minSpace = 30000000;
+  const unused = fileSystemSize - graph.size;
+  const needed = minSpace - unused;
+  const q = [...graph.children].filter(x => x.type === 'folder');
+  let next = q.pop();
+  let min: Node = next;
+  while (next) {
+    if (next.size >= needed && next.size < min.size) {
+      min = next;
+    }
+  }
+}
+
+function findSmallest(outputs: string[]): number {
   const graph = createGraph(outputs);
   calculateSizes(graph);
   return search(graph);
