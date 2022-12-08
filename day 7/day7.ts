@@ -60,10 +60,36 @@ function createGraph(outputs: string[]): Node {
   return root;
 }
 
+function calculateSizes(graph: Node): number {
+  if (graph.type === 'file') return graph.size;
+  for (const child of graph.children) {
+    graph.size += calculateSizes(child);
+  }
+  return graph.size;
+}
+
+function search(graph: Node): number {
+  if (graph.type === 'file') return 0;
+  const q = [...graph.children].filter(x => x.type === 'folder');
+  let next = q.pop();
+  let sum = 0;
+  while (next) {
+    if (next.size <= 100000) {
+      sum += next.size;
+    }
+
+    sum += search(next);
+
+    next = q.pop();
+  }
+
+  return sum;
+}
+
 function findFolders(outputs: string[]): number {
   const graph = createGraph(outputs);
-  console.log(graph);
-  return 0;
+  calculateSizes(graph);
+  return search(graph);
 }
 
 const tests = [
@@ -102,3 +128,5 @@ for (const test of tests) {
     throw new Error(JSON.stringify(test) + ' - ' + result);
   }
 }
+
+console.log(findFolders(input));
