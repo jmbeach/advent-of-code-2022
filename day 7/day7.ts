@@ -99,19 +99,26 @@ function searchSmallest(graph: Node): number {
   const unused = fileSystemSize - graph.size;
   const needed = minSpace - unused;
   const q = [...graph.children].filter(x => x.type === 'folder');
-  let next = q.pop();
-  let min: Node = next;
+  let next = q.shift()!;
+  let min: Node = graph;
   while (next) {
     if (next.size >= needed && next.size < min.size) {
       min = next;
     }
+    for (const child of next.children) {
+      if (child.type === 'folder') {
+        q.push(child);
+      }
+    }
+    next = q.shift()!;
   }
+  return min.size;
 }
 
 function findSmallest(outputs: string[]): number {
   const graph = createGraph(outputs);
   calculateSizes(graph);
-  return search(graph);
+  return searchSmallest(graph);
 }
 
 const tests = [
@@ -140,6 +147,7 @@ $ ls
 5626152 d.ext
 7214296 k`,
     expect: 95437,
+    expect2: 24933642,
   },
 ];
 
@@ -149,6 +157,11 @@ for (const test of tests) {
   if (result !== test.expect) {
     throw new Error(JSON.stringify(test) + ' - ' + result);
   }
+  const result2 = findSmallest(input);
+  if (result2 !== test.expect2) {
+    throw new Error(JSON.stringify(test) + ' - ' + result2);
+  }
 }
 
 console.log(findFolders(input));
+console.log(findSmallest(input));
