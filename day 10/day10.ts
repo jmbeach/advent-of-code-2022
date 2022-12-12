@@ -26,6 +26,33 @@ function getSignalStrengths(instructions: [string, number][]): number[] {
     220 * cycles[219],
   ];
 }
+
+function draw(instructions: [string, number][]): string[] {
+  const cycles = [];
+  let register = 1;
+  const result = [...new Array(6)].map(() => '');
+  for (const [instruction, strength] of instructions) {
+    if (instruction === 'noop') {
+      cycles.push(register);
+    } else if (instruction === 'addx') {
+      cycles.push(register);
+      cycles.push(register);
+      register += strength;
+    }
+  }
+  for (let i = 0; i < 240; i++) {
+    const row = Math.floor(i / 40);
+    const cycle = cycles[i];
+    const spritePosition = Math.max(0, Math.min(36, cycle - 1));
+    const position = i % 40;
+    if (position >= spritePosition && position <= spritePosition + 2) {
+      result[row] += '#';
+    } else {
+      result[row] += '.';
+    }
+  }
+  return result;
+}
 const tests = [
   {
     data: `addx 15
@@ -175,6 +202,14 @@ noop
 noop
 noop`,
     expect: [420, 1140, 1800, 2940, 2880, 3960],
+    expect2: [
+      '##..##..##..##..##..##..##..##..##..##..',
+      '###...###...###...###...###...###...###.',
+      '####....####....####....####....####....',
+      '#####.....#####.....#####.....#####.....',
+      '######......######......######......###.',
+      '#######.......#######.......#######.....',
+    ],
   },
 ];
 
@@ -183,7 +218,12 @@ for (const test of tests) {
   if (result.join(',') !== test.expect.join(',')) {
     throw new Error(JSON.stringify(test) + ' - ' + result.join(','));
   }
+  const result2 = draw(parseInput(test.data));
+  if (result2.join('\n') !== test.expect2.join('\n')) {
+    throw new Error(JSON.stringify(test) + ' - ' + result2.join('\n'));
+  }
 }
 
 const input = parseInput(Deno.readTextFileSync('input.txt'));
 console.log(getSignalStrengths(input).reduce((prev, next) => prev + next, 0));
+console.log(draw(input));
